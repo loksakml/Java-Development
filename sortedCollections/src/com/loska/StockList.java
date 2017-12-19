@@ -1,14 +1,14 @@
 package com.loska;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class StockList {
     private final Map<String, StockItem> list;
 
     public StockList() {
-        this.list = new HashMap<>();
+        this.list = new LinkedHashMap<>();
     }
 
     public int addStock (StockItem item) {
@@ -49,6 +49,14 @@ public class StockList {
 
     }
 
+    public Map<String, Double> priceList() {
+        Map<String, Double> prices = new LinkedHashMap<>();
+        for(Map.Entry<String, StockItem> item : list.entrySet()){
+            prices.put(item.getKey(), item.getValue().getPrice());
+        }
+        return Collections.unmodifiableMap(prices);
+    }
+
     @Override
     public String toString() {
         String s = "\nStockList\n";
@@ -58,11 +66,11 @@ public class StockList {
 
             double itemValue = stockItem.getPrice() * stockItem.QuantityInStock();
 
-            s = s + stockItem +". There are " +stockItem.QuantityInStock() + " in stock. Value of items: ";
-            s = s + itemValue + "\n";
+            s = s + stockItem +". There are " +stockItem.QuantityInStock() + " in stock. Value of items: £";
+            s = s + String.format("%.2f",itemValue) + "\n";
             totalCost += itemValue;
         }
 
-        return s + "Total stock value " + totalCost;
+        return s + "Total stock value £" + String.format("%.2f",totalCost);
     }
 }
