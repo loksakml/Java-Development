@@ -32,7 +32,7 @@ public class Main {
 class Countdown {
     private int i;
 
-    public synchronized void doCountdown(){
+    public void doCountdown(){
         String colour;
         switch(Thread.currentThread().getName()){
             case "Thread 1":
@@ -45,8 +45,11 @@ class Countdown {
                 colour = ThreadColour.ANSI_GREEN;
         }
 
-        for (i = 10; i>0; i--){
-            System.out.println(colour + Thread.currentThread().getName() + ": i =" + i);
+        synchronized (this) {
+
+            for (i = 10; i > 0; i--) {
+                System.out.println(colour + Thread.currentThread().getName() + ": i =" + i);
+            }
         }
     }
 }
