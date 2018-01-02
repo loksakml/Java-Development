@@ -1,5 +1,7 @@
 package com.loska;
 
+import java.util.LinkedList;
+
 public class MyLinkedList implements NodeList{
     private ListItem root = null;
 
@@ -59,6 +61,31 @@ public class MyLinkedList implements NodeList{
 
     @Override
     public boolean removeItem(ListItem item) {
+        if (item !=null){
+            System.out.println( "Delete item " + item.getValue());
+        }
+        ListItem currentItem = this.root;
+        while (currentItem !=null){
+            int comparison = currentItem.compareTo(item);
+            if (comparison == 0) {
+                if(currentItem == this.root){
+                    this.root = currentItem.next();
+                } else {
+                    currentItem.previous().setNext(currentItem.next());
+                    if (currentItem.next() != null) {
+                        currentItem.next().setPrevious(currentItem.previous());
+                    }
+                }
+                return true;
+
+            } else if (comparison <0){
+                currentItem = currentItem.next();
+            } else {
+                System.out.println(item +  " does not exist.");
+                return false;
+            }
+
+        }
         return false;
     }
 
