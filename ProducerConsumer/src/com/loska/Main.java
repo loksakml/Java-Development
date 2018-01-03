@@ -40,7 +40,9 @@ class MyProducer implements Runnable {
         for (String num: nums){
             try{
                 System.out.println(colour + "Adding..." + num);
-                buffer.add(num);
+                synchronized (buffer){
+                    buffer.add(num);
+                }
 
                 Thread.sleep(random.nextInt(1000));
             } catch(InterruptedException e){
@@ -50,7 +52,10 @@ class MyProducer implements Runnable {
         }
 
         System.out.println(colour + "Adding EOF and and exiting...");
-        buffer.add("EOF");
+        synchronized (buffer){
+            buffer.add("EOF");
+        }
+
     }
 
 }
@@ -66,17 +71,19 @@ class MyConsumer implements Runnable{
 
     public void run(){
         while (true) {
-            if (buffer.isEmpty()){
-                continue; //when the buffer has no products in it, customers will loop around and keep checking the buffer..until it is not empty. The continue key words will jump you out of the loop and start the while loop again  - ie: ignore all the codes that follow.
-            }
-            if(buffer.get(0).equals(EOF)){
-                System.out.println(colour + "Exiting");
-                break;
-            } else {
-                System.out.println(colour + "Removed " + buffer.remove(0));
-            }
+            synchronized (buffer){
+                if (buffer.isEmpty()){
+                    continue; //when the buffer has no products in it, customers will loop around and keep checking the buffer..until it is not empty. The continue key words will jump you out of the loop and start the while loop again  - ie: ignore all the codes that follow.
+                }
+                if(buffer.get(0).equals(EOF)){
+                    System.out.println(colour + "Exiting");
+                    break;
+                } else {
+                    System.out.println(colour + "Removed " + buffer.remove(0));
+                }
 
-
+            }
+            
         }
     }
 }
