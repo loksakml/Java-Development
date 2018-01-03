@@ -12,13 +12,19 @@ public class Main {
     public static final String EOF = "EOF";
 
     public static void main(String[] args) {
-        List<String> buffer = new ArrayList<String>();
-        ReentrantLock bufferLock = new ReentrantLock();
+       // List<String> buffer = new ArrayList<String>();
+        // ReentrantLock bufferLock = new ReentrantLock();
+        ArrayBlockingQueue<String> buffer = new ArrayBlockingQueue<String>(6);//this is not dynamic, so it doesnt grow
 
         ExecutorService executorService = Executors.newFixedThreadPool(5);//first you need a new threadPool
-        MyProducer producer = new MyProducer(buffer, ThreadColour.ANSI_GREEN, bufferLock);
-        MyConsumer consumer1 = new MyConsumer(buffer, ThreadColour.ANSI_PURPLE, bufferLock);
-        MyConsumer consumer2 = new MyConsumer(buffer, ThreadColour.ANSI_CYAN, bufferLock);
+//        MyProducer producer = new MyProducer(buffer, ThreadColour.ANSI_GREEN, bufferLock);
+//        MyConsumer consumer1 = new MyConsumer(buffer, ThreadColour.ANSI_PURPLE, bufferLock);
+//        MyConsumer consumer2 = new MyConsumer(buffer, ThreadColour.ANSI_CYAN, bufferLock);
+
+        MyProducer producer = new MyProducer(buffer, ThreadColour.ANSI_GREEN);
+        MyConsumer consumer1 = new MyConsumer(buffer, ThreadColour.ANSI_PURPLE);
+        MyConsumer consumer2 = new MyConsumer(buffer, ThreadColour.ANSI_CYAN);
+
 
         executorService.execute(producer);
         executorService.execute(consumer1);
@@ -48,14 +54,14 @@ public class Main {
 
 
 class MyProducer implements Runnable {
-    private List<String> buffer;
+    private ArrayBlockingQueue<String> buffer;
     private String colour;
-    private ReentrantLock bufferLock;
+    //private ReentrantLock bufferLock;
 
-    public MyProducer(List<String> buffer, String colour, ReentrantLock bufferLock) {
+    public MyProducer(ArrayBlockingQueue<String> buffer, String colour) {
         this.buffer = buffer;
         this.colour = colour;
-        this.bufferLock = bufferLock;
+        //this.bufferLock = bufferLock;
     }
 
     public void run() {
@@ -65,12 +71,13 @@ class MyProducer implements Runnable {
         for (String num: nums){
             try{
                 System.out.println(colour + "Adding..." + num);
-                bufferLock.lock();
-                try {
-                    buffer.add(num);
-                } finally {
-                    bufferLock.unlock();
-                }
+                buffer.put(num);
+//                bufferLock.lock();
+//                try {
+//                    buffer.add(num);
+//                } finally {
+//                    bufferLock.unlock();
+//                }
 
 
 
@@ -82,12 +89,18 @@ class MyProducer implements Runnable {
         }
 
         System.out.println(colour + "Adding EOF and and exiting...");
-        bufferLock.lock();
-        try {
-            buffer.add("EOF");
-        } finally {
-            bufferLock.unlock();
+        try{
+            buffer.put("EOF");
+        } catch (InterruptedException e){
+
         }
+
+//        bufferLock.lock();
+//        try {
+//            buffer.add("EOF");
+//        } finally {
+//            bufferLock.unlock();
+//        }
 
 
 
@@ -97,42 +110,47 @@ class MyProducer implements Runnable {
 }
 
 class MyConsumer implements Runnable{
-    private List<String> buffer;
+    private ArrayBlockingQueue<String> buffer;
     private String colour;
-    private ReentrantLock bufferLock;
+   // private ReentrantLock bufferLock;
 
-    public MyConsumer(List<String> buffer, String colour, ReentrantLock bufferLock) {
+    public MyConsumer(ArrayBlockingQueue<String> buffer, String colour) {
         this.buffer = buffer;
         this.colour = colour;
-        this.bufferLock = bufferLock;
+        //this.bufferLock = bufferLock;
     }
 
     public void run(){
 
-        int counter = 0;
+        //int counter = 0;
 
         while (true) {
-
-            if(bufferLock.tryLock()){
-                try{
-                    if (buffer.isEmpty()){
+            synchronized (buffer) {
+                //if(bufferLock.tryLock()){
+                try {
+                    if (buffer.isEmpty()) {
                         continue; //when the buffer has no products in it, customers will loop around and keep checking the buffer..until it is not empty. The continue key words will jump you out of the loop and start the while loop again  - ie: ignore all the codes that follow.
                     }
-                    System.out.println(colour + "The counter = " + counter);
+                    //System.out.println(colour + "The counter = " + counter);
 
-                    if(buffer.get(0).equals(EOF)){
+                    if (buffer.peek().equals(EOF)) {
                         System.out.println(colour + "Exiting");
                         break;
                     } else {
-                        System.out.println(colour + "Removed " + buffer.remove(0));
+                        System.out.println(colour + "Removed " + buffer.take());
                     }
-                } finally {
-                    bufferLock.unlock();
+                } catch (InterruptedException e) {
+
                 }
 
-            } else {
-                counter ++;
             }
+//            } finally {
+//                bufferLock.unlock();
+//            }
+
+//        } else {
+//            counter ++;
+//        }
 
 
 
