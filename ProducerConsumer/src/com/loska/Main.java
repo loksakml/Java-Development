@@ -87,23 +87,32 @@ class MyConsumer implements Runnable{
     }
 
     public void run(){
+
+        int counter = 0;
+
         while (true) {
 
-            bufferLock.lock();
-            try{
-                if (buffer.isEmpty()){
-                    continue; //when the buffer has no products in it, customers will loop around and keep checking the buffer..until it is not empty. The continue key words will jump you out of the loop and start the while loop again  - ie: ignore all the codes that follow.
+            if(bufferLock.tryLock()){
+                try{
+                    if (buffer.isEmpty()){
+                        continue; //when the buffer has no products in it, customers will loop around and keep checking the buffer..until it is not empty. The continue key words will jump you out of the loop and start the while loop again  - ie: ignore all the codes that follow.
+                    }
+                    System.out.println(colour + "The counter = " + counter);
 
+                    if(buffer.get(0).equals(EOF)){
+                        System.out.println(colour + "Exiting");
+                        break;
+                    } else {
+                        System.out.println(colour + "Removed " + buffer.remove(0));
+                    }
+                } finally {
+                    bufferLock.unlock();
                 }
-                if(buffer.get(0).equals(EOF)){
-                    System.out.println(colour + "Exiting");
-                    break;
-                } else {
-                    System.out.println(colour + "Removed " + buffer.remove(0));
-                }
-            } finally {
-                bufferLock.unlock();
+
+            } else {
+                counter ++;
             }
+
 
 
 
