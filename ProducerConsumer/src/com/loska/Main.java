@@ -45,8 +45,12 @@ class MyProducer implements Runnable {
             try{
                 System.out.println(colour + "Adding..." + num);
                 bufferLock.lock();
-                buffer.add(num);
-                bufferLock.unlock();
+                try {
+                    buffer.add(num);
+                } finally {
+                    bufferLock.unlock();
+                }
+
 
 
                 Thread.sleep(random.nextInt(1000));
@@ -58,8 +62,13 @@ class MyProducer implements Runnable {
 
         System.out.println(colour + "Adding EOF and and exiting...");
         bufferLock.lock();
-        buffer.add("EOF");
-        bufferLock.unlock();
+        try {
+            buffer.add("EOF");
+        } finally {
+            bufferLock.unlock();
+        }
+
+
 
 
     }
@@ -81,19 +90,23 @@ class MyConsumer implements Runnable{
         while (true) {
 
             bufferLock.lock();
-            if (buffer.isEmpty()){
-                bufferLock.unlock();
-                continue; //when the buffer has no products in it, customers will loop around and keep checking the buffer..until it is not empty. The continue key words will jump you out of the loop and start the while loop again  - ie: ignore all the codes that follow.
+            try{
+                if (buffer.isEmpty()){
+                    continue; //when the buffer has no products in it, customers will loop around and keep checking the buffer..until it is not empty. The continue key words will jump you out of the loop and start the while loop again  - ie: ignore all the codes that follow.
 
-            }
-            if(buffer.get(0).equals(EOF)){
-                System.out.println(colour + "Exiting");
+                }
+                if(buffer.get(0).equals(EOF)){
+                    System.out.println(colour + "Exiting");
+                    break;
+                } else {
+                    System.out.println(colour + "Removed " + buffer.remove(0));
+                }
+            } finally {
                 bufferLock.unlock();
-                break;
-            } else {
-                System.out.println(colour + "Removed " + buffer.remove(0));
             }
-            bufferLock.unlock();
+
+
+
 
 
 
