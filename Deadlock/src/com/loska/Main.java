@@ -55,7 +55,6 @@ public class Main {
             }
             System.out.println("Thread2 released lock1. Exiting...");
         }
-
     }
 
 
